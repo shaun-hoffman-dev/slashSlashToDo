@@ -1,0 +1,22 @@
+.title-black{
+    color: black;
+}
+
+header {
+    background-color: #666;
+    color: white;
+    text-align: center;
+    padding: 15px;
+}
+
+h1{
+    font-family: 'Permanent Marker', cursive;
+}
+
+header i{
+    padding: 5px;
+}
+
+header h2{
+    font-size: 1.3em;
+}
