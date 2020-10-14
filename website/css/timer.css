@@ -1,0 +1,33 @@
+.timer-clock{
+    text-align: center;
+    vertical-align: center;
+    height: 100%;
+    font-size: 2em;
+}
+
+.timer-title{
+    text-align: center;
+    vertical-align: middle;
+}
+
+.timer-card{
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.trash-timer{
+    position: absolute;
+    top: 1px;
+    right: 1px;
+    color: rgb(114, 109, 109);
+}
+
+.trash-timer:hover{
+    color: red;
+}
+
+#timer-list .btn {
+    padding: 4px 6px;
+    margin: 5px;
+    width: 53px;
+}

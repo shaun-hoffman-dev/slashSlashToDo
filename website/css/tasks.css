@@ -1,0 +1,16 @@
+table .btn{
+    margin: 0 2px;
+    padding: 4px;
+}
+
+tr td{
+    vertical-align: middle;
+}
+
+.task-completed{
+    text-decoration: line-through;
+}
+
+.task-dark{
+    background-color: #BBB;
+}

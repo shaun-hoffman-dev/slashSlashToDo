@@ -1,16 +1,7 @@
 @import url('header.css');
-
-footer {
-    background-color: #666;
-    color: white;
-    position: fixed;
-    bottom: 0;
-    width: 100%;
-}
-
-.footer-main-div {
-    text-align: center;
-}
+@import url('timer.css');
+@import url('tasks.css');
+@import url('footer.css');
 
 main{
     margin-bottom: 72px;
@@ -37,29 +28,6 @@ main{
     margin: 3px;
 }
 
-.timer-clock{
-    text-align: center;
-    vertical-align: center;
-    height: 100%;
-    font-size: 2em;
-}
 
-.timer-title{
-    text-align: center;
-    vertical-align: center;
-}
 
-.timer-card{
-    margin-top: 10px;
-}
 
-.trash-timer{
-    position: absolute;
-    top: 1px;
-    right: 1px;
-    color: rgb(114, 109, 109);
-}
-
-.trash-timer:hover{
-    color: red;
-}
