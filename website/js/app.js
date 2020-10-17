@@ -92,13 +92,13 @@ function handleTimer(event,action){
     const timerElement = element.parentElement.parentElement.children[1];
     let newTime;
     const timerUI = ()=>{
+        // Borrowed and Modified From Jamie Uttariello: https://medium.com/@olinations/an-accurate-vanilla-js-stopwatch-script-56ceb5c6f45b
         newTime = new Date().getTime();
         if (savedTime){
           timeDifference = (newTime - startTime) + savedTime;
         } else {
           timeDifference =  newTime - startTime;
         }
- 
         let hours = Math.floor((timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
         let minutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
         let seconds = Math.floor((timeDifference % (1000 * 60)) / 1000);
@@ -240,6 +240,16 @@ function addLogEntry(type, logTime, description){
         `
     document.getElementById("log-list-body").appendChild(tableRow);
 }
+
+document.querySelector('#log-list-body').addEventListener('click',(e)=>{
+    handleTasks(e.target);
+});
+
+function handleLogs(element){
+    if (element.classList.contains('btn-delete')) {
+        element.parentElement.parentElement.remove();
+    }
+};
 
 
 //******************************************************************/
