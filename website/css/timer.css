@@ -31,3 +31,28 @@
     margin: 5px;
     width: 53px;
 }
+
+#timer-work-log{
+    margin: 3px;
+}
+
+#timer-work-log textarea{
+    font-size: .8em;
+}
+
+#staticBackdrop input{
+    margin-right: 5px;
+}
+
+.modal-input-div{
+    margin-left: 25px;
+}
+
+#log-list-body td {
+    padding: 5px;
+    font-size: .9em;
+}
+
+.table{
+    overflow-y: scroll;
+}
