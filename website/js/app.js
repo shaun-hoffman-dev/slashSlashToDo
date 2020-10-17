@@ -90,6 +90,7 @@ function focusTask(){
 function handleTimer(event,action){
     const element = event.target;
     const timerElement = element.parentElement.parentElement.children[1];
+    const workLogElement = document.querySelector('#work-log-textarea');
     let newTime;
     const timerUI = ()=>{
         // Borrowed and Modified From Jamie Uttariello: https://medium.com/@olinations/an-accurate-vanilla-js-stopwatch-script-56ceb5c6f45b
@@ -141,17 +142,18 @@ function handleTimer(event,action){
         savedTime=0;
         if(action==='log'&&timerElement.innerHTML != '00:00:00'){
             let type;
-            let description = document.querySelector('#work-log-textarea').value;
+            let description = workLogElement.value;
             if(document.querySelector('#radio-admin').checked){
                 type = 'Admin';
             } else if (document.querySelector('#radio-meetings').checked){
                 type = 'Meetings';
             } else if (document.querySelector('#radio-comms').checked) {
-                type = 'Comms';
+                type = 'Communications';
             } else {
                 type = 'Other';
             }
             addLogEntry(type,timerElement.innerHTML,description);
+            workLogElement.value = "";
         }
         timerElement.innerHTML = '00:00:00';
     }
@@ -164,7 +166,7 @@ document.getElementById("btn-add-log").addEventListener('click',(e)=>{
     modalTitle.innerHTML = "Add New Work Log(s), Then Click 'Close'"
     modalFooter.innerHTML=`
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary" id="btn-save-task" onclick="addTimeLog()">Log Work</button>
+        <button type="button" class="btn btn-primary" id="btn-save-work" onclick="addTimeLog()">Log Work</button>
         `;
     modalBody.innerHTML=`
         <div class="input-group mb-3 col-lg-12">
@@ -183,7 +185,7 @@ document.getElementById("btn-add-log").addEventListener('click',(e)=>{
                 </div>
                 <div class="form-check form-check-inline">
                     <input class="form-check-input" type="radio" name="task-options" id="radio-modal-comms" value="Comms">
-                    <label class="form-check-label" for="radio-modal-comms">Comms</label>
+                    <label class="form-check-label" for="radio-modal-comms">Communications</label>
                 </div>
                 <div class="form-check form-check-inline">
                     <input class="form-check-input" type="radio" name="task-options" id="radio-modal-meetings" value="Meetings" >
@@ -206,24 +208,108 @@ document.getElementById("btn-add-log").addEventListener('click',(e)=>{
 
 function addTimeLog(){
     let type;
-    let description = document.querySelector('#modal-work-log-textarea').value;
+    const description = document.querySelector('#modal-work-log-textarea').value;
     let hours = document.querySelector('#modal-field-hours').value;
     let minutes = document.querySelector('#modal-field-minutes').value;
-    minutes = (minutes === '') ? '00' : minutes;
-    minutes = (minutes < 10) ? '0' + minutes : minutes;
-    hours = (hours === '') ? '00' : hours;
-    hours = (hours < 10) ? '0' + hours : hours;
-    let time = `${hours}:${minutes}:00`
+    let extraHours = 0;
+    let passTest = true;
+    let failMessage = [];
+
+    if (document.getElementById('validation-failed')!=null){
+        document.getElementById('validation-failed').remove();
+    }
+
     if(document.querySelector('#radio-modal-admin').checked){
         type = 'Admin';
     } else if (document.querySelector('#radio-modal-meetings').checked){
         type = 'Meetings';
     } else if (document.querySelector('#radio-modal-comms').checked) {
-        type = 'Comms';
+        type = 'Communications';
     } else {
         type = 'Other';
     }
-    addLogEntry(type,time,description);
+
+    minutes = (minutes === '') ? '00' : minutes;
+    hours = (hours === '') ? '00' : hours;
+
+    //Begin Test for Valid Inputs
+    if (minutes === '00' && hours === '00'){
+        failMessage.push('You must log some amount of time.');
+        passTest = false;
+    }
+    if (isNaN(hours)){
+        failMessage.push('Hours must be blank or a whole number.');
+        passTest = false;
+        hours = '';
+    }
+    if (isNaN(minutes)){
+        failMessage.push('Minutes must be blank or a whole number.');
+        passTest = false;
+        minutes = '';
+    }
+    if (passTest==false) {
+        let failHtml = '';
+        for (let i=0; i<failMessage.length; i++) {
+            failHtml = failHtml +
+            `<div class="alert alert-danger" role="alert">
+                ${failMessage[i]}
+            </div>`
+        }
+
+        if (failHtml!=''){
+            let saveHours = hours;
+            let saveMinutes = minutes;
+            let saveDescription = description
+            modalBody.innerHTML = modalBody.innerHTML + `<div id='validation-failed'>` + failHtml +`</div>`;
+            document.querySelector('#modal-field-hours').value = saveHours;
+            document.querySelector('#modal-field-minutes').value = saveMinutes;
+            document.querySelector('#modal-work-log-textarea').value = saveDescription;
+            if(type === 'Admin'){
+                document.querySelector('#radio-modal-admin').checked = true;
+            } else if (type === 'Meetings'){
+                document.querySelector('#radio-modal-meetings').checked=true;
+            } else if ( type === 'Communications') {
+                document.querySelector('#radio-modal-comms').checked=true;
+            } else {
+                document.querySelector('#radio-modal-other').checked=true;
+            }
+        }
+        failMessage = [];
+    }
+
+
+    //If We Passed Validation, Log Time
+    if (passTest) {
+        if (document.getElementById('validation-failed')!=null){
+            document.getElementById('validation-failed').remove();
+        }
+
+        if (parseInt(minutes) >= 60){
+            extraHours = Math.floor(parseInt(minutes)/60);
+            minutes = (parseInt(minutes)%60).toString();
+        }
+        minutes = (minutes.length < 2) ? '0' + minutes.toString() : minutes;
+
+        hours = (parseInt(hours) + parseInt(extraHours)).toString();  
+        hours = (hours.length < 2) ? '0' + hours : hours;
+
+        let time = `${hours}:${minutes}:00`
+        if(document.querySelector('#radio-modal-admin').checked){
+            type = 'Admin';
+        } else if (document.querySelector('#radio-modal-meetings').checked){
+            type = 'Meetings';
+        } else if (document.querySelector('#radio-modal-comms').checked) {
+            type = 'Communications';
+        } else {
+            type = 'Other';
+        }
+        addLogEntry(type,time,description);
+        document.querySelector('#modal-work-log-textarea').value="";
+        document.querySelector('#modal-field-hours').value="";
+        document.querySelector('#modal-field-minutes').value="";
+        document.querySelector('#modal-field-hours').focus();
+    }
+
 }
 
 
@@ -241,14 +327,26 @@ function addLogEntry(type, logTime, description){
     document.getElementById("log-list-body").appendChild(tableRow);
 }
 
-document.querySelector('#log-list-body').addEventListener('click',(e)=>{
-    handleTasks(e.target);
-});
-
 function handleLogs(element){
+    console.log(e.target);
     if (element.classList.contains('btn-delete')) {
         element.parentElement.parentElement.remove();
     }
+};
+
+document.getElementById("btn-clear-log").addEventListener('click',(e)=>{
+    modalTitle.innerHTML = "Are You Sure You Want to Completely Clear the Work Log?"
+    modalFooter.innerHTML=`
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">No</button>
+        <button type="button" class="btn btn-primary" id="btn-save-task" data-dismiss="modal" onclick="clearLog()">Yes</button>
+        `;
+    modalBody.remove();
+}); 
+
+function clearLog(){
+        for (let i=document.getElementById('log-list-body').children.length; i>0; i--){
+            document.getElementById('log-list-body').children[i-1].remove();
+        }
 };
 
 
@@ -261,41 +359,43 @@ document.getElementById("btn-view-report").addEventListener('click',(e)=>{
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
         `;
     modalBody.innerHTML=`
-        <div class="col-10">
-            <canvas id="myChart"></canvas>
-        </div>
-        <div>
-            <table class="table table-hover">
-                    <colgroup>
-                        <col span="1" style="width: 60%;">
-                        <col span="1" style="width: 40%;">
-                        </colgroup>
-                    <thead>
-                        <tr>
-                            <th>Category</th>
-                            <th>Time</th>
-                        </tr>
-                        <tbody id="modal-table-body">
-                            <!-- Tasks Here -->
-                        <tr>
-                            <td>Admin</td>
-                            <td>01:05:00</td>
-                        </tr>
-                        <tr>
-                            <td>Meetings</td>
-                            <td>03:07:00</td>
-                        </tr>
-                        <tr>
-                            <td>Comms</td>
-                            <td>00:35:00</td>
-                        </tr>
-                        <tr>
-                            <td>Other</td>
-                            <td>01:40:00</td>
-                        </tr>
-                        </tbody>
-                    </thead>
-                </table>
+        <div class="container justify-content-md-center">
+            <div class="col-10">
+                <canvas id="myChart"></canvas>
+            </div>
+            <div>
+                <table class="table table-hover">
+                        <colgroup>
+                            <col span="1" style="width: 60%;">
+                            <col span="1" style="width: 40%;">
+                            </colgroup>
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th>Time (hh:mm:ss)</th>
+                            </tr>
+                            <tbody id="modal-table-body">
+                                <!-- Tasks Here -->
+                            <tr>
+                                <td>Admin</td>
+                                <td>01:05:00</td>
+                            </tr>
+                            <tr>
+                                <td>Meetings</td>
+                                <td>03:07:00</td>
+                            </tr>
+                            <tr>
+                                <td>Communications</td>
+                                <td>00:35:00</td>
+                            </tr>
+                            <tr>
+                                <td>Other</td>
+                                <td>01:40:00</td>
+                            </tr>
+                            </tbody>
+                        </thead>
+                    </table>
+            </div>
         </div>
         `;
     loadChart();
@@ -309,10 +409,10 @@ function loadChart(){
 
     // The data for our dataset
     data: {
-        labels: ['Admin', 'Meetings', 'Comms', 'Other'],
+        labels: ['Admin', 'Meetings', 'Communications', 'Other'],
         datasets: [{
             label: 'Work Log',
-            backgroundColor: ['red','green','blue','yellow'],
+            backgroundColor: ['orange','green','purple','teal'],
             borderColor: 'rgb(255, 255, 255)',
             data: [65, 187, 35, 100]
         }]
@@ -336,5 +436,5 @@ function loadChart(){
             }
         }
     }
-});
+})
 }
