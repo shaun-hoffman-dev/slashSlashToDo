@@ -53,6 +53,7 @@
     font-size: .9em;
 }
 
-.table{
-    overflow-y: scroll;
+#log-list-body td .btn {
+    padding: 4px;
+    margin: 0;
 }
