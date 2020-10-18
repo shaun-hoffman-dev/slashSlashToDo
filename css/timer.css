@@ -2,7 +2,7 @@
     text-align: center;
     vertical-align: center;
     height: 100%;
-    font-size: 2em;
+    font-size: 1.6em;
 }
 
 .timer-title{
@@ -13,17 +13,6 @@
 .timer-card{
     margin-top: 10px;
     margin-bottom: 10px;
-}
-
-.trash-timer{
-    position: absolute;
-    top: 1px;
-    right: 1px;
-    color: rgb(114, 109, 109);
-}
-
-.trash-timer:hover{
-    color: red;
 }
 
 #timer-list .btn {
@@ -45,7 +34,8 @@
 }
 
 .modal-input-div{
-    margin-left: 25px;
+    margin-left: 15px;
+    font-size: .8em;
 }
 
 #log-list-body td {
@@ -56,4 +46,15 @@
 #log-list-body td .btn {
     padding: 4px;
     margin: 0;
+}
+
+@media (min-width: 1500px) {
+    .timer-clock{
+        font-size: 2em;
+    }
+
+    .modal-input-div{
+        margin-left: 25px;
+        font-size: 1em;
+    }
 }
