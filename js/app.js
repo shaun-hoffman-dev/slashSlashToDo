@@ -16,6 +16,65 @@ let timeDifference;
 let categories = [];
 categories = ['Admin', 'Meetings', 'Communications', 'Other']; //Can Change to Accomodate Custom Categories and Build the Array Dynamically
 
+//******************************************************************/
+//********************** STORAGE *************************************/
+//******************************************************************/
+class Storage {
+    static getTasks(){
+        let tasks;
+        if (localStorage.getItem('tasks') === null){
+            tasks = [];
+        } else {
+            tasks = JSON.parse(localStorage.getItem('tasks'));
+        }
+
+        return tasks;
+    }
+
+    static getLogs(){
+        let logs;
+        if (localStorage.getItem('logs') === null){
+            logs = [];
+        } else {
+            logs = JSON.parse(localStorage.getItem('logs'));
+        }
+
+        return logs;
+    }
+
+    static saveTasks(){
+        let tasks = [];
+
+        for (let i=0; i<document.getElementById('task-list-body').children.length; i++){
+            let task = {};
+            task.taskItem = document.getElementById('task-list-body').children[i].children[0].innerText;
+            task.added = document.getElementById('task-list-body').children[i].children[1].innerText;
+            task.due = document.getElementById('task-list-body').children[i].children[2].innerText;
+            task.isDone = document.getElementById('task-list-body').children[i].classList.contains('task-dark');
+
+            tasks.push(task);
+        }
+
+        localStorage.setItem('tasks', JSON.stringify(tasks));
+    }
+    
+    static saveLogs(){
+        let logs = [];
+
+        for (let i=0; i<document.getElementById('log-list-body').children.length; i++){
+            let log = {};
+            log.added = document.getElementById('log-list-body').children[i].children[0].innerText;
+            log.time = document.getElementById('log-list-body').children[i].children[1].innerText;
+            log.category = document.getElementById('log-list-body').children[i].children[2].innerText;
+            log.description = document.getElementById('log-list-body').children[i].children[3].innerText;
+
+            logs.push(log);
+        }
+
+        localStorage.setItem('logs', JSON.stringify(logs));
+    }
+}
+
 //On Page Load Activities
     //Get The Current Year for the Footer Copyright
     function currentYear(){
@@ -24,6 +83,21 @@ categories = ['Admin', 'Meetings', 'Communications', 'Other']; //Can Change to A
     };
     currentYear();
 
+    function loadTasks(){
+        let tasks = Storage.getTasks();
+        for (let i=0; i<tasks.length; i++){
+            addTaskRow(tasks[i].taskItem,tasks[i].added,tasks[i].due,tasks[i].isDone);
+        }
+    }
+    loadTasks();
+
+    function loadLogs(){
+        let logs = Storage.getLogs();
+        for (let i=0; i<logs.length; i++){
+            addLogEntry(logs[i].category, logs[i].time, logs[i].description, logs[i].added)
+        }
+    }
+    loadLogs();
 
 //******************************************************************/
 //********************** TASKS *************************************/
@@ -49,22 +123,38 @@ function addTask(event){
     if(event.type==='click'||event.key==='Enter'){
         let taskName = document.getElementById("modal-field-task");
         if (taskName.value!=''){
+            let added = returnAddTime();
             let date = new Date().toLocaleDateString('en-US',{ month: 'numeric', day: 'numeric' });
-            let time = new Date().toLocaleTimeString('en-US',{ hour: 'numeric', minute: 'numeric', hour12: true });
-            let tableRow = document.createElement("TR");
-            tableRow.innerHTML = `
-                <td>${taskName.value}</td>
-                <td>${date} ${time}</td>
-                <td>${date}</td>
-                <td><button type="button" class="btn btn-success btn-done">Done</button></td>
-                <td><button type="button" class="btn btn-danger btn-delete">X</button></td>
-                `
-            document.getElementById("task-list-body").appendChild(tableRow);
+            addTaskRow(taskName.value,added,date,false);
+            Storage.saveTasks();
             taskName.value = '';
             taskName.focus();
         }
     }
 };
+
+function addTaskRow(task, added, due, isDone){
+    let tableRow = document.createElement("TR");
+    tableRow.innerHTML = `
+        <td>${task}</td>
+        <td>${added}</td>
+        <td>${due}</td>
+        <td><button type="button" class="btn btn-success btn-done">Done</button></td>
+        <td><button type="button" class="btn btn-danger btn-delete">X</button></td>
+        `
+    if (isDone){
+        tableRow.classList.add('task-dark');
+        tableRow.children[0].classList.add('task-completed');
+        tableRow.children[1].classList.add('task-completed');
+        tableRow.children[2].classList.add('task-completed');
+        tableRow.children[3].children[0].remove();
+    }
+    if (document.getElementById("task-list-body").children[0]==undefined || isDone){
+        document.getElementById("task-list-body").appendChild(tableRow);
+    } else {
+        document.getElementById("task-list-body").prepend(tableRow);
+    }
+}
 
 document.querySelector('#task-list-body').addEventListener('click',(e)=>{
     handleTasks(e.target);
@@ -73,6 +163,7 @@ document.querySelector('#task-list-body').addEventListener('click',(e)=>{
 function handleTasks(element){
     if (element.classList.contains('btn-delete')) {
         element.parentElement.parentElement.remove();
+        Storage.saveTasks();
     } else if(element.classList.contains('btn-done')){
         let parent = element.parentElement.parentElement;
         element.parentElement.parentElement.children[0].classList.add('task-completed');
@@ -81,6 +172,7 @@ function handleTasks(element){
         element.parentElement.parentElement.classList.add('task-dark');
         element.parentElement.parentElement.parentElement.appendChild(parent);
         element.parentElement.parentElement.children[3].children[0].remove();
+        Storage.saveTasks();
     }
 };
 
@@ -158,7 +250,9 @@ function handleTimer(event,action){
             } else {
                 type = 'Other';
             }
-            addLogEntry(type,timerElement.innerHTML,description);
+            let added = returnAddTime();
+            addLogEntry(type,timerElement.innerHTML,description,added);
+            Storage.saveLogs();
             workLogElement.value = "";
         }
         timerElement.innerHTML = '00:00:00';
@@ -287,6 +381,7 @@ function addTimeLog(){
 
     //If We Passed Validation, Log Time
     if (passTest) {
+        let added = returnAddTime();
         if (document.getElementById('validation-failed')!=null){
             document.getElementById('validation-failed').remove();
         }
@@ -300,7 +395,7 @@ function addTimeLog(){
         hours = (parseInt(hours) + parseInt(extraHours)).toString();  
         hours = (hours.length < 2) ? '0' + hours : hours;
 
-        let time = `${hours}:${minutes}:00`
+        let logTime = `${hours}:${minutes}:00`
         if(document.querySelector('#radio-modal-admin').checked){
             type = 'Admin';
         } else if (document.querySelector('#radio-modal-meetings').checked){
@@ -310,7 +405,8 @@ function addTimeLog(){
         } else {
             type = 'Other';
         }
-        addLogEntry(type,time,description);
+        addLogEntry(type,logTime,description,added);
+        Storage.saveLogs();
         document.querySelector('#modal-work-log-textarea').value="";
         document.querySelector('#modal-field-hours').value="";
         document.querySelector('#modal-field-minutes').value="";
@@ -319,13 +415,10 @@ function addTimeLog(){
 
 }
 
-
-function addLogEntry(type, logTime, description){
-    let date = new Date().toLocaleDateString('en-US',{ month: 'numeric', day: 'numeric' });
-    let time = new Date().toLocaleTimeString('en-US',{ hour: 'numeric', minute: 'numeric', hour12: true });
+function addLogEntry(type, logTime, description, added){
     let tableRow = document.createElement("TR");
     tableRow.innerHTML = `
-        <td>${date} ${time}</td>
+        <td>${added}</td>
         <td>${logTime}</td>
         <td>${type}</td>
         <td>${description}</td>
@@ -342,6 +435,7 @@ document.querySelector('#log-list-body').addEventListener('click',(e)=>{
 function handleLogs(element){
     if (element.classList.contains('btn-delete')) {
         element.parentElement.parentElement.remove();
+        Storage.saveLogs();
     }
 };
 
@@ -357,6 +451,7 @@ document.getElementById("btn-clear-log").addEventListener('click',(e)=>{
 function clearLog(){
         for (let i=document.getElementById('log-list-body').children.length; i>0; i--){
             document.getElementById('log-list-body').children[i-1].remove();
+            Storage.saveLogs();
         }
 };
 
@@ -490,6 +585,15 @@ function getChartData(){
     chartObjectData.data = [adminPercentage,meetingsPercentage,commsPercentage,otherPercentage];
     chartObjectData.tableHTML = html;
 
-    return chartObjectData;
-    
+    return chartObjectData;   
+}
+
+//******************************************************************/
+//********************** HELPERS *************************************/
+//******************************************************************/
+function returnAddTime(){
+    let date = new Date().toLocaleDateString('en-US',{ month: 'numeric', day: 'numeric' });
+    let time = new Date().toLocaleTimeString('en-US',{ hour: 'numeric', minute: 'numeric', hour12: true });
+    let added = `${date} ${time}`;
+    return added;
 }
