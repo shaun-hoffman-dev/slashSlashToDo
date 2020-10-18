@@ -23,6 +23,10 @@ main{
     max-width: 1080px;
 }
 
+.hidden{
+    display: none;
+}
+
 .btn-start,
 .btn-stop{
     margin: 3px;
