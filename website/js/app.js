@@ -12,6 +12,10 @@ let savedTime;
 let runTimer;
 let timeDifference;
 
+//Globals
+let categories = [];
+categories = ['Admin', 'Meetings', 'Communications', 'Other']; //Can Change to Accomodate Custom Categories and Build the Array Dynamically
+
 //On Page Load Activities
     //Get The Current Year for the Footer Copyright
     function currentYear(){
@@ -52,7 +56,7 @@ function addTask(event){
                 <td>${taskName.value}</td>
                 <td>${date} ${time}</td>
                 <td>${date}</td>
-                <td><button type="button" class="btn btn-primary btn-done">Done</button></td>
+                <td><button type="button" class="btn btn-success btn-done">Done</button></td>
                 <td><button type="button" class="btn btn-danger btn-delete">X</button></td>
                 `
             document.getElementById("task-list-body").appendChild(tableRow);
@@ -361,6 +365,7 @@ function clearLog(){
 //********************** REPORTS *************************************/
 //******************************************************************/
 document.getElementById("btn-view-report").addEventListener('click',(e)=>{
+    chartObject = getChartData();
     modalBody.classList.remove('hidden');
     modalTitle.innerHTML = `Work Log Report`
     modalFooter.innerHTML=`
@@ -383,33 +388,17 @@ document.getElementById("btn-view-report").addEventListener('click',(e)=>{
                                 <th>Time (hh:mm:ss)</th>
                             </tr>
                             <tbody id="modal-table-body">
-                                <!-- Tasks Here -->
-                            <tr>
-                                <td>Admin</td>
-                                <td>01:05:00</td>
-                            </tr>
-                            <tr>
-                                <td>Meetings</td>
-                                <td>03:07:00</td>
-                            </tr>
-                            <tr>
-                                <td>Communications</td>
-                                <td>00:35:00</td>
-                            </tr>
-                            <tr>
-                                <td>Other</td>
-                                <td>01:40:00</td>
-                            </tr>
+                               ${chartObject.tableHTML} 
                             </tbody>
                         </thead>
                     </table>
             </div>
         </div>
         `;
-    loadChart();
+    loadChart(chartObject);
 });
 
-function loadChart(){
+function loadChart(obj){
     let ctx = document.getElementById('myChart').getContext('2d');
     let chart = new Chart(ctx, {
     // The type of chart we want to create
@@ -417,12 +406,12 @@ function loadChart(){
 
     // The data for our dataset
     data: {
-        labels: ['Admin', 'Meetings', 'Communications', 'Other'],
+        labels: obj.categories,
         datasets: [{
-            label: 'Work Log',
-            backgroundColor: ['orange','green','purple','teal'],
-            borderColor: 'rgb(255, 255, 255)',
-            data: [65, 187, 35, 100]
+            //label: 'Work Log',
+            backgroundColor: ['red','green','blue','yellow','purple','orange','teal'],
+            borderColor: 'white',
+            data: obj.data
         }]
     },
 
@@ -438,11 +427,69 @@ function loadChart(){
                     if (label) {
                         label += ': ';
                     }
-                    label += val + ' minutes';
+                    label += val + '%';
                     return label;
                 }
             }
         }
     }
 })
+}
+
+function getChartData(){
+    let chartObjectData = {};
+    let adminTotal = 0;
+    let meetingsTotal = 0;
+    let commsTotal = 0;
+    let otherTotal = 0;
+
+    for (let i=0; i<document.getElementById('log-list-body').children.length; i++){
+        let category = document.getElementById('log-list-body').children[i].children[2].innerText;
+        let time = document.getElementById('log-list-body').children[i].children[1].innerText;
+        let timeArr = time.split(":");
+        let total = parseInt(timeArr[2]) + (parseInt(timeArr[1])*60) + (parseInt(timeArr[0])*60*60);
+
+        if (category === 'Admin'){
+            adminTotal += total;
+        } else if (category === 'Meetings') {
+            meetingsTotal += total;
+        } else if (category === 'Communications') {
+            commsTotal += total;
+        } else if (category === 'Other') {
+            otherTotal += total;
+        }
+    }
+
+    let grandTotal = adminTotal+meetingsTotal+commsTotal+otherTotal;
+    let adminPercentage = (adminTotal / grandTotal) * 100;
+    let meetingsPercentage = (meetingsTotal / grandTotal) * 100;
+    let commsPercentage = (commsTotal / grandTotal) * 100;
+    let otherPercentage = (otherTotal / grandTotal) * 100;
+
+    let totalsArr = [adminTotal,meetingsTotal,commsTotal,otherTotal];
+    let html = '';
+
+    for (let i=0; i<totalsArr.length; i++) {
+        let catTotal = totalsArr[i];
+        let seconds = catTotal % 60;
+        catTotal = Math.floor(catTotal / 60);
+        let minutes = catTotal % 60;
+        let hours = Math.floor(catTotal / 60);
+        seconds = (seconds.toString().length < 2) ? '0' + seconds.toString() : seconds;
+        minutes = (minutes.toString().length < 2) ? '0' + minutes.toString() : minutes;
+        hours = (hours.toString().length < 2) ? '0' + hours.toString() : hours;
+        let catTime = `${hours}:${minutes}:${seconds}`;
+        html += `
+        <tr>
+            <td>${categories[i]}</td>
+            <td>${catTime}</td>
+         </tr>`
+    }
+
+    chartObjectData.categories = categories;
+    chartObjectData.data = [adminPercentage,meetingsPercentage,commsPercentage,otherPercentage];
+    chartObjectData.tableHTML = html;
+
+    return chartObjectData;
+    
 }
