@@ -25,6 +25,7 @@ let timeDifference;
 //********************** TASKS *************************************/
 //******************************************************************/
 document.getElementById("btn-add-task").addEventListener('click',(e)=>{
+    modalBody.classList.remove('hidden');
     modalTitle.innerHTML = `Add New Tasks By Clicking 'Save' or Using the 'Enter' Key, Then Click 'Cancel' When Done.`
     modalFooter.innerHTML=`
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Done</button>
@@ -41,7 +42,6 @@ document.getElementById("btn-add-task").addEventListener('click',(e)=>{
 }); 
 
 function addTask(event){
-    console.log(event);
     if(event.type==='click'||event.key==='Enter'){
         let taskName = document.getElementById("modal-field-task");
         if (taskName.value!=''){
@@ -70,10 +70,12 @@ function handleTasks(element){
     if (element.classList.contains('btn-delete')) {
         element.parentElement.parentElement.remove();
     } else if(element.classList.contains('btn-done')){
+        let parent = element.parentElement.parentElement;
         element.parentElement.parentElement.children[0].classList.add('task-completed');
         element.parentElement.parentElement.children[1].classList.add('task-completed');
         element.parentElement.parentElement.children[2].classList.add('task-completed');
         element.parentElement.parentElement.classList.add('task-dark');
+        element.parentElement.parentElement.parentElement.appendChild(parent);
         element.parentElement.parentElement.children[3].children[0].remove();
     }
 };
@@ -163,6 +165,7 @@ function handleTimer(event,action){
 //********************** LOGS ************************************/
 //******************************************************************/
 document.getElementById("btn-add-log").addEventListener('click',(e)=>{
+    modalBody.classList.remove('hidden');
     modalTitle.innerHTML = "Add New Work Log(s), Then Click 'Close'"
     modalFooter.innerHTML=`
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -327,8 +330,12 @@ function addLogEntry(type, logTime, description){
     document.getElementById("log-list-body").appendChild(tableRow);
 }
 
+
+document.querySelector('#log-list-body').addEventListener('click',(e)=>{
+    handleLogs(e.target);
+});
+
 function handleLogs(element){
-    console.log(e.target);
     if (element.classList.contains('btn-delete')) {
         element.parentElement.parentElement.remove();
     }
@@ -340,7 +347,7 @@ document.getElementById("btn-clear-log").addEventListener('click',(e)=>{
         <button type="button" class="btn btn-secondary" data-dismiss="modal">No</button>
         <button type="button" class="btn btn-primary" id="btn-save-task" data-dismiss="modal" onclick="clearLog()">Yes</button>
         `;
-    modalBody.remove();
+    modalBody.classList.add('hidden');
 }); 
 
 function clearLog(){
@@ -354,6 +361,7 @@ function clearLog(){
 //********************** REPORTS *************************************/
 //******************************************************************/
 document.getElementById("btn-view-report").addEventListener('click',(e)=>{
+    modalBody.classList.remove('hidden');
     modalTitle.innerHTML = `Work Log Report`
     modalFooter.innerHTML=`
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
