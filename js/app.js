@@ -516,13 +516,13 @@ function loadChart(obj){
         tooltips: {
             callbacks: {
                 label: function(tooltipItem, data) {
-                    let label = data.datasets[tooltipItem.datasetIndex].label || '';
+                    let label = data.labels[tooltipItem.index] || '';
                     const val = data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index];
 
                     if (label) {
                         label += ': ';
                     }
-                    label += val + '%';
+                    label += val.toFixed(2).toString() + '%';
                     return label;
                 }
             }
@@ -560,26 +560,23 @@ function getChartData(){
     let meetingsPercentage = (meetingsTotal / grandTotal) * 100;
     let commsPercentage = (commsTotal / grandTotal) * 100;
     let otherPercentage = (otherTotal / grandTotal) * 100;
-
     let totalsArr = [adminTotal,meetingsTotal,commsTotal,otherTotal];
     let html = '';
 
     for (let i=0; i<totalsArr.length; i++) {
         let catTotal = totalsArr[i];
-        let seconds = catTotal % 60;
-        catTotal = Math.floor(catTotal / 60);
-        let minutes = catTotal % 60;
-        let hours = Math.floor(catTotal / 60);
-        seconds = (seconds.toString().length < 2) ? '0' + seconds.toString() : seconds;
-        minutes = (minutes.toString().length < 2) ? '0' + minutes.toString() : minutes;
-        hours = (hours.toString().length < 2) ? '0' + hours.toString() : hours;
-        let catTime = `${hours}:${minutes}:${seconds}`;
+        let catTime = returnLogTime(catTotal);
         html += `
         <tr>
             <td>${categories[i]}</td>
             <td>${catTime}</td>
          </tr>`
     }
+    html +=`
+    <tr>
+        <td><b>TOTAL:</b></td>
+        <td><b>${returnLogTime(grandTotal)}</b></td>
+     </tr>`
 
     chartObjectData.categories = categories;
     chartObjectData.data = [adminPercentage,meetingsPercentage,commsPercentage,otherPercentage];
@@ -596,4 +593,18 @@ function returnAddTime(){
     let time = new Date().toLocaleTimeString('en-US',{ hour: 'numeric', minute: 'numeric', hour12: true });
     let added = `${date} ${time}`;
     return added;
+}
+
+//Pass in total seconds and it formats it into hh:mm:ss
+function returnLogTime(time){
+    let seconds = time % 60;
+    time = Math.floor(time / 60);
+    let minutes = time % 60;
+    let hours = Math.floor(time / 60);
+    seconds = (seconds.toString().length < 2) ? '0' + seconds.toString() : seconds;
+    minutes = (minutes.toString().length < 2) ? '0' + minutes.toString() : minutes;
+    hours = (hours.toString().length < 2) ? '0' + hours.toString() : hours;
+    let logTime = `${hours}:${minutes}:${seconds}`;
+
+    return logTime;
 }
