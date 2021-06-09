@@ -39,13 +39,13 @@
                 <div class="col col-lg-7" id="task-div">
                     <div class="row">
                         <div class="col-9">
-                            <h3>Task List</h3>
+                            <h3>Task List  <i class="fas fa-filter pointer" id="btnTaskFilter"></i></h3>
                         </div>
                         <div class="col-3">
                             <button class="btn btn-primary" id="btn-add-task" data-toggle="modal" data-target="#staticBackdrop">New Task</button>
                         </div>
                     </div>
-                    <table class="table table-hover">
+                    <table class="table table-hover" id="task-table">
                         <colgroup>
                             <col span="1" style="width: 68%;">
                             <col span="1" style="width: 16%;">
@@ -70,13 +70,13 @@
                 <div class="col col-lg-5" id="timer-div">
                     <div class="row">
                         <div class="col-8">
-                            <h3>Timekeeping</h3>
+                            <h3><i class="fas fa-angle-right" id="btn-Timer-Toggle"></i>  Timekeeping</h3>
                         </div>
                         <div class="col-4">
                             <button class="btn btn-primary" id="btn-add-log" data-toggle="modal" data-target="#staticBackdrop">Add Manual Log</button>
                         </div>
                     </div>
-                    <div id="timer-list" class="row justify-content-center">
+                    <div id="timer-list" class="row justify-content-center hidden">
                         <!-- Timer Template Begin-->
                         <div class="col">
                             <div class="card rounded=50 timer-card">
@@ -131,7 +131,7 @@
                             <h3>Work Log</h3>
                         </div>
                         <div class="col-4">
-                            <button class="btn btn-primary" id="btn-view-report" data-toggle="modal" data-target="#staticBackdrop">Work Report</button>
+                            <button class="btn btn-warning" id="btn-view-report" data-toggle="modal" data-target="#staticBackdrop">Work Report</button>
                         </div>
                     </div>
                         <!-- Timer Template End -->
