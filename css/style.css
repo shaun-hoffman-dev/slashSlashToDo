@@ -32,6 +32,8 @@ main{
     margin: 3px;
 }
 
-
+.pointer{
+    cursor: pointer;
+}
 
 
