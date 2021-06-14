@@ -7,6 +7,7 @@ let modalFooter = document.getElementById("modal-footer");
 const timerIconHTML = `<svg width=".9em" height=".9em" viewBox="0 0 16 16" class="bi bi-alarm-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
                             <path fill-rule="evenodd" d="M6 .5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1H9v1.07a7.001 7.001 0 0 1 3.274 12.474l.601.602a.5.5 0 0 1-.707.708l-.746-.746A6.97 6.97 0 0 1 8 16a6.97 6.97 0 0 1-3.422-.892l-.746.746a.5.5 0 0 1-.707-.708l.602-.602A7.001 7.001 0 0 1 7 2.07V1h-.5A.5.5 0 0 1 6 .5zM.86 5.387A2.5 2.5 0 1 1 4.387 1.86 8.035 8.035 0 0 0 .86 5.387zM11.613 1.86a2.5 2.5 0 1 1 3.527 3.527 8.035 8.035 0 0 0-3.527-3.527zM8.5 5.5a.5.5 0 0 0-1 0v3.362l-1.429 2.38a.5.5 0 1 0 .858.515l1.5-2.5A.5.5 0 0 0 8.5 9V5.5z"/>
                         </svg>`;
+const today = new Date().toLocaleDateString('en-US',{ month: 'numeric', day: 'numeric' });
 let startTime;
 let savedTime;
 let runTimer;
@@ -51,6 +52,7 @@ class Storage {
             task.added = document.getElementById('task-list-body').children[i].children[1].innerText;
             task.due = document.getElementById('task-list-body').children[i].children[2].innerText;
             task.isDone = document.getElementById('task-list-body').children[i].classList.contains('task-dark');
+            task.source = document.getElementById('task-list-body').children[i].children[5].innerText;
 
             tasks.push(task);
         }
@@ -86,7 +88,7 @@ class Storage {
     function loadTasks(){
         let tasks = Storage.getTasks();
         for (let i=0; i<tasks.length; i++){
-            addTaskRow(tasks[i].taskItem,tasks[i].added,tasks[i].due,tasks[i].isDone);
+            addTaskRow(tasks[i].taskItem,tasks[i].added,tasks[i].due,tasks[i].isDone,tasks[i].source);
         }
     }
     loadTasks();
@@ -98,6 +100,10 @@ class Storage {
         }
     }
     loadLogs();
+
+    $(function () {
+        $('[data-toggle="tooltip"]').tooltip()
+      });
 
 //******************************************************************/
 //********************** TASKS *************************************/
@@ -116,6 +122,20 @@ document.getElementById("btn-add-task").addEventListener('click',(e)=>{
             </div>
             <input type="text" class="form-control" placeholder="Task" aria-label="taskName" aria-describedby="basic-addon1" id="modal-field-task" onkeypress="addTask(event)">
         </div>
+        <div class="input-group mb-3 col-lg-12">
+            <div class="input-group-prepend">
+                <span class="input-group-text col-12" id="basic-addon1">Due Date:</span>
+            </div>
+            <input type="text" class="form-control col-1" placeholder="${today}" aria-label="dueDate" aria-describedby="basic-addon1" id="modal-field-duedate">
+            <div class="input-group-prepend">
+                <label class="input-group-text" for="inputGroupSelect01">Source:</label>
+            </div>
+            <select class="custom-select col-6" id="inputGroupSelect01">
+                <option selected value="Work">Work</option>
+                <option value="Home">Home</option>
+                <option value="Farm">Farm</option>
+            </select>
+        </div>
         `;
 }); 
 
@@ -124,8 +144,9 @@ function addTask(event){
         let taskName = document.getElementById("modal-field-task");
         if (taskName.value!=''){
             let added = returnAddTime();
-            let date = new Date().toLocaleDateString('en-US',{ month: 'numeric', day: 'numeric' });
-            addTaskRow(taskName.value,added,date,false);
+            let date = document.getElementById('modal-field-duedate').value;
+            let source = document.getElementById("inputGroupSelect01").value;
+            addTaskRow(taskName.value,added,date,false,source);
             Storage.saveTasks();
             taskName.value = '';
             taskName.focus();
@@ -133,14 +154,28 @@ function addTask(event){
     }
 };
 
-function addTaskRow(task, added, due, isDone){
+function addTaskRow(task, added, due, isDone, source){
     let tableRow = document.createElement("TR");
+    if (due == ""){
+        due = today;
+    }
+
+    let sourceDot = "";
+    if(source=="Work"){
+        sourceDot=`<span class="dot blue" data-toggle="tooltip" data-placement="top" title="Work Item"></span>`
+    } else if(source=="Home"){
+        sourceDot=`<span class="dot yellow" data-toggle="tooltip" data-placement="top" title="Home Item"></span>`
+    } else {
+        sourceDot=`<span class="dot green" data-toggle="tooltip" data-placement="top" title="Farm Item"></span>`
+    };
+
     tableRow.innerHTML = `
-        <td>${task}</td>
+        <td>${sourceDot} ${task}</td>
         <td>${added}</td>
         <td>${due}</td>
         <td><button type="button" class="btn btn-success btn-done">Done</button></td>
         <td><button type="button" class="btn btn-danger btn-delete">X</button></td>
+        <td class="hidden">${source}</td>
         `
     if (isDone){
         tableRow.classList.add('task-dark');
@@ -154,6 +189,11 @@ function addTaskRow(task, added, due, isDone){
     } else {
         document.getElementById("task-list-body").prepend(tableRow);
     }
+
+    $(function () {
+        $('[data-toggle="tooltip"]').tooltip()
+      });
+
 }
 
 document.querySelector('#task-list-body').addEventListener('click',(e)=>{
@@ -185,6 +225,23 @@ function focusTask(){
 //******************************************************************/
 //********************** TIMERS ************************************/
 //******************************************************************/
+
+document.getElementById("btn-Timer-Toggle").addEventListener('click',(e)=>{
+    handleTimerToggle(e.target);
+});
+
+function handleTimerToggle(element){
+    if (element.classList.contains('fa-angle-right')){
+        document.getElementById("btn-Timer-Toggle").classList.remove('fa-angle-right');
+        document.getElementById("btn-Timer-Toggle").classList.add('fa-angle-down');
+        document.getElementById("timer-list").classList.remove('hidden');
+    } else {
+        document.getElementById("btn-Timer-Toggle").classList.remove('fa-angle-down');
+        document.getElementById("btn-Timer-Toggle").classList.add('fa-angle-right');
+        document.getElementById("timer-list").classList.add('hidden');
+    };
+}
+
 function handleTimer(event,action){
     const element = event.target;
     const timerElement = element.parentElement.parentElement.children[1];
